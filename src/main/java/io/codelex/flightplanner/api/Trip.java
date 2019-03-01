@@ -13,7 +13,7 @@ public class Trip {
     private Airport to;
     private LocalDateTime departureTime;
     private LocalDateTime arrivalTime;
-    
+
     @JsonCreator
     public Trip(@JsonProperty("id") Long id,
                 @JsonProperty("from") Airport from,
@@ -28,7 +28,7 @@ public class Trip {
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
     }
-    
+
     public Long getId() {
         return id;
     }

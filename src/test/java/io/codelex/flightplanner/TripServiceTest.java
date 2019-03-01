@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -110,8 +111,7 @@ class TripServiceTest {
         assertEquals(request.getCarrier(), trip.getCarrier());
         assertEquals(request.getDepartureTime(), trip.getDepartureTime());
     }
-
-
+    
     @Test
     void should_increment_id_when_adding_new_flight() {
         //given
@@ -147,9 +147,9 @@ class TripServiceTest {
         AddTripsRequest request = getAddTripRequest();
         //when
         Trip trip = tripService.addTrip(request);
-        Trip result = tripService.findById(trip.getId() + 99);
         //then
-        assertNull(result);
+        Assertions.assertThrows(NoSuchElementException.class,
+                () -> tripService.findById(trip.getId() + 999));
     }
 
     @Test
@@ -164,14 +164,18 @@ class TripServiceTest {
 
     @Test
     void should_be_able_to_delete_flight_by_id() {
-        //given
-        AddTripsRequest request = getAddTripRequest();
+        AddTripsRequest request = new AddTripsRequest(
+                new Airport("Latvia", "Riga", "RIX"),
+                new Airport("Sweden", "Stockholm", "ARN"),
+                "Rynair",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now()
+        );
         //when
         Trip trip = tripService.addTrip(request);
         tripService.deleteById(trip.getId());
-        trip = tripService.findById(trip.getId());
         //then
-        assertNull(trip);
+        Assertions.assertEquals(tripService.findAll().size(), 0);
     }
 
     @Test

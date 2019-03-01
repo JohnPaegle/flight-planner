@@ -13,21 +13,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
-
+import java.util.stream.Collectors;
 
 
 @Component
 class TripService {
-
+    private final AtomicLong ID = new AtomicLong();
     private final List<Trip> trips = new ArrayList<>();
-    private final AtomicLong id = new AtomicLong();
 
-    Trip addTrip(AddTripsRequest request) {
+    synchronized Trip addTrip(AddTripsRequest request) {
         if (isTripPresent(request)) {
             throw new IllegalStateException();
         } else {
             Trip trip = new Trip(
-                    id.incrementAndGet(),
+                    ID.incrementAndGet(),
                     request.getFrom(),
                     request.getTo(),
                     request.getCarrier(),
@@ -37,29 +36,22 @@ class TripService {
             trips.add(trip);
             return trip;
         }
-    } 
-    
-
-    List<Trip> search(String from, String to) {
-        List<Trip> responseList = new ArrayList<>();
-        for (Trip trip : trips) {
-            if (doesAirportMatch(trip.getFrom(), from)) {
-                responseList.add(trip);
-                break;
-            }
-            if (doesAirportMatch(trip.getTo(), to)) {
-                responseList.add(trip);
-                break;
-            }
-        }
-        return responseList;
     }
 
-    List<Trip> findAll() {
+    synchronized List<Trip> findAll() {
         return trips;
     }
 
-    Trip findById(long id) throws NoSuchElementException  {
+    synchronized List<Trip> findByJSON(FindTripRequest request) {
+        return trips.stream()
+                .filter(it -> it.getFrom().equals(request.getFrom()))
+                .filter(it -> it.getTo().equals(request.getTo()))
+                .filter(it -> it.getDepartureTime().toLocalDate().isEqual(request.getDeparture()))
+                .filter(it -> it.getArrivalTime().toLocalDate().isEqual(request.getArrival()))
+                .collect(Collectors.toList());
+    }
+
+    synchronized Trip findById(Long id) throws NoSuchElementException {
         for (Trip trip : trips) {
             if (trip.getId().equals(id)) {
                 return trip;
@@ -68,7 +60,22 @@ class TripService {
         throw new NoSuchElementException();
     }
 
-    void deleteById(Long id) {
+    synchronized List<Trip> search(String from, String to) {
+        List<Trip> responseList = new ArrayList<>();
+        for (Trip trip : trips) {
+            if (isAirportMatching(trip.getFrom(), from)) {
+                responseList.add(trip);
+                break;
+            }
+            if (isAirportMatching(trip.getTo(), to)) {
+                responseList.add(trip);
+                break;
+            }
+        }
+        return responseList;
+    }
+
+    synchronized void deleteById(Long id) {
         for (Trip trip : trips) {
             if (trip.getId().equals(id)) {
                 trips.remove(trip);
@@ -80,29 +87,8 @@ class TripService {
     void deleteAll() {
         trips.clear();
     }
-    
-    private Boolean requestIsEmty(Airport airport) {
-        if (airport.getAirport().length() == 0
-                || airport.getCity().length() == 0
-                || airport.getCountry().length() == 0) {
-            return true;
-        } else return false;
-    }
 
-    public boolean doesAirportMatch(Airport airport, String search) {
-        if (search != null && search.length() > 0) {
-            return airport.getCity().toLowerCase().trim().contains(search.toLowerCase().trim())
-                    || search.toLowerCase().trim().contains(airport.getCity().toLowerCase().trim())
-                    || airport.getCountry().trim().toLowerCase().contains(search.toLowerCase().trim())
-                    || search.toLowerCase().trim().contains(airport.getCountry().trim())
-                    || airport.getAirport().trim().toLowerCase().contains(search.toLowerCase().trim())
-                    || search.toLowerCase().trim().contains(airport.getAirport().toLowerCase().trim());
-        }
-        return false;
-
-    }
-
-    public boolean isTripPresent(AddTripsRequest request) {
+    synchronized boolean isTripPresent(AddTripsRequest request) {
         for (Trip trip : trips) {
             if (trip.getFrom().equals(request.getFrom())
                     && trip.getTo().equals(request.getTo())
@@ -114,20 +100,21 @@ class TripService {
         }
         return false;
     }
-   
 
-    List<Trip> findByJSON(FindTripRequest request) {
-        List<Trip> x = new ArrayList<>();
-        for (Trip trip : trips) {
-            if (trip.getFrom().equals(request.getFrom())
-                    && trip.getTo().equals(request.getTo())
-                    && trip.getCarrier().equals(request.getCarrier())
-                    && trip.getDepartureTime().equals(request.getDepartureTime())
-                    && trip.getArrivalTime().equals(request.getArrivalTime())) {
-                x.add(trip);
-            }
-        }
-        return x;
+    synchronized boolean isAirportMatching(Airport airport, String search) {
+        if (search != null && !search.isEmpty() && !search.equals(" ")) {
+            return airport.getCity().toLowerCase().trim().contains(search.toLowerCase().trim())
+                    || airport.getCountry().toLowerCase().trim().contains(search.toLowerCase().trim())
+                    || airport.getAirport().toLowerCase().trim().contains(search.toLowerCase().trim());
+        } else return false;
     }
-    
 }
+
+
+
+
+
+
+
+
+

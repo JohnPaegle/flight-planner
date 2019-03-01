@@ -21,6 +21,7 @@ public class FlightPlannerApplication {
     public static void main(String[] args) {
         SpringApplication.run(FlightPlannerApplication.class, args);
     }
+
     @Bean
     Jackson2ObjectMapperBuilder objectMapperBuilder() {
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();

@@ -19,21 +19,6 @@ public class Airport {
         this.airport = airport;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Airport airport1 = (Airport) o;
-        return getCountry().equals(airport1.getCountry()) &&
-                getCity().equals(airport1.getCity()) &&
-                getAirport().equals(airport1.getAirport());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getCountry(), getCity(), getAirport());
-    }
-
     public String getCountry() {
         return country;
     }
@@ -46,4 +31,18 @@ public class Airport {
         return airport;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(getAirport());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Airport airport1 = (Airport) o;
+        return getCountry().equals(airport1.getCountry()) &&
+                getCity().equals(airport1.getCity()) &&
+                getAirport().equals(airport1.getAirport());
+    }
 }

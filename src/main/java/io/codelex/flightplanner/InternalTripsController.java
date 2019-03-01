@@ -20,12 +20,21 @@ class InternalTripsController {
     @PutMapping("/flights")
     public ResponseEntity<Trip> addTrip(@RequestBody AddTripsRequest request) {
         if (isInputCorrect(request)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (tripService.isTripPresent(request)) {
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
+            } else
+                return new ResponseEntity<>(tripService.addTrip(request), HttpStatus.CREATED);
+        } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+    }
+
+    @GetMapping("/flights/{id}")
+    public ResponseEntity<Trip> findTripByID(@PathVariable Long id) {
+        try {
+            return new ResponseEntity<>(tripService.findById(id), HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        if (tripService.isTripPresent(request)) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        } else
-            return new ResponseEntity<>(tripService.addTrip(request), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/flights/{id}")
@@ -36,20 +45,6 @@ class InternalTripsController {
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-
-    @GetMapping("/flights/{id}")
-    public ResponseEntity<Trip> findTripById(@PathVariable Long id) {
-        try {
-            return new ResponseEntity<>(tripService.findById(id), HttpStatus.OK);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @PostMapping("/clear")
-    public void deleteAll() {
-        tripService.deleteAll();
     }
 
     private boolean isInputCorrect(AddTripsRequest request) {
