@@ -38,11 +38,13 @@ public class Airport {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Airport airport1 = (Airport) o;
-        return getCountry().equals(airport1.getCountry()) &&
-                getCity().equals(airport1.getCity()) &&
-                getAirport().equals(airport1.getAirport());
+        return getAirport().equals(airport1.getAirport());
     }
 }
